@@ -5,11 +5,6 @@ from rest_framework import status
 from .models import Notes
 from .serializers import NotesSerializer
 
-# Create your views here.
-# class NotesViewSet(viewsets.ModelViewSet):
-#     queryset = Notes.objects.all()
-#     serializer_class = NotesSerializer
-
 @api_view(["GET","POST"])
 def notes_list(request):
     if request.method == "GET":
@@ -22,3 +17,15 @@ def notes_list(request):
             serializer.save() # creates new note in DB
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(["DELETE"])
+def note_delete(request, id):
+    try:
+        note = Notes.objects.filter(id = id)
+    except Notes.DoesNotExist:
+        return Response(
+            {"error" : "Note does not exists"},
+             status=status.HTTP_404_NOT_FOUND
+        )
+    note.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
