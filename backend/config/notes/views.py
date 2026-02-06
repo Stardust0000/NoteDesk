@@ -17,6 +17,21 @@ def notes_list(request):
             serializer.save() # creates new note in DB
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["PATCH"])
+def note_update(request,id):
+    try:
+        note = Notes.objects.get(id=id) # fetch notes of id from DB
+    except:
+        return Response(
+            {"error" : "Note does not exists"}, 
+            status=status.HTTP_400_BAD_REQUEST
+             )
+    serializer = NotesSerializer(instance = note, data = request.data, partial = True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(["DELETE"])
 def note_delete(request, id):
