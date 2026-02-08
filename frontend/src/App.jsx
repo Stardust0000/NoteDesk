@@ -1,35 +1,43 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useState } from 'react'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+export default function App() {
+    const [notes, setNotes] = useState([]);
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null);
+    useEffect(()=>{
+        const API_URL = 'http://127.0.0.1:8000/api/v1/notes/';
+        fetch(API_URL)
+        .then(response=> {
+            if(!response.ok){
+                throw new Error('Response was not OK');
+            }
+            return response.json();
+        })
+        .then(notes => {
+            // console.log(notes);
+            setNotes(notes);
+            setLoading(false)
+        })
+        .catch(error => {
+            setError(error);
+            setLoading(false);
+        })
+    }, []);
+    if (loading) return <p>Loading data from backend...</p>
+    if (error) return <p>Error: {error.message}</p>
+    return (
+    <div className='App'>
+        <h2>Welcome to Note Desk</h2>
+        {notes.length===0 ?(<p>No notes</p>):(
+            <ul>
+            {notes.map((note)=>{
+                return(
+                    <li key={note.id}>{note.text}</li>
+                )
+            })}
+            </ul>
+        )}
+    </div>
+    );
 }
-
-export default App
