@@ -130,5 +130,4 @@ GitHub
 https://github.com/Stardust0000
 
 LinkedIn  
-https://www.linkedin.com/in/neha70741/
-
+https://www.linkedin.com/in/neha-navade-613112325/
