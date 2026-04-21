@@ -1,11 +1,13 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Notes
 from .serializers import NotesSerializer
 
 @api_view(["GET","POST"])
+@permission_classes([IsAuthenticated])
 def notes_list(request):
     if request.method == "GET":
         notes = Notes.objects.all() # fetch notes from db
@@ -36,7 +38,7 @@ def note_update(request,id):
 @api_view(["DELETE"])
 def note_delete(request, id):
     try:
-        note = Notes.objects.filter(id = id)
+        note = Notes.objects.get(id = id)
     except Notes.DoesNotExist:
         return Response(
             {"error" : "Note does not exists"},
