@@ -11,7 +11,6 @@ export default function Notes({ setIsLoggedIn }) {
     const [error, setError] = useState(null);
     const [text, setText] = useState('');
     const [editingID, setEditingID] = useState(null)
-
     // Effects
     useEffect(()=>{
         fetchNotes()
@@ -30,8 +29,13 @@ export default function Notes({ setIsLoggedIn }) {
             headers:{"Authorization":`Bearer ${token}`}
         })
         .then(response=> {
+            if (response.status === 401){
+                localStorage.removeItem("accessToken");
+                setIsLoggedIn(false);
+                return;
+            }
             if(!response.ok){
-                throw new Error('Response was not OK');
+                throw new Error('Response was not OK!');
             }
             return response.json();
         })

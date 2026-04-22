@@ -26,7 +26,7 @@ export default function App() {
             {isLoggedIn ? (
                 <Notes setIsLoggedIn={setIsLoggedIn} />
             ) : showSignup ? (
-                <Signup setShowSignup={setShowSignup} />
+                <Signup setShowSignup={setShowSignup} setIsLoggedIn={setIsLoggedIn}/>
             ):(
                 <Login setIsLoggedIn={setIsLoggedIn} setShowSignup={setShowSignup} />
             )}
