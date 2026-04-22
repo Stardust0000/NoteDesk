@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function Login({ setIsLoggedIn }) {
+export default function Login({ setIsLoggedIn, setShowSignup }) {
     const[username, setUsername] = useState('');
     const[password, setPassword] = useState('');
     
@@ -22,14 +22,16 @@ export default function Login({ setIsLoggedIn }) {
 
             const data =await response.json();
              
+            // if response is OK store in local storage
             if (response.ok) {
                 console.log(data);
                 localStorage.setItem("accessToken", data.access);
                 localStorage.setItem("refreshToken", data.refresh);
 
+                // reset useState empty
                 setUsername('');
                 setPassword('');
-
+                // set LoggedIn state to TRUE
                 setIsLoggedIn(true);
             } else {
                 console.log("login failed", data);
@@ -49,6 +51,12 @@ export default function Login({ setIsLoggedIn }) {
                 <input type="password" id="password" value={password} onChange={(e)=>setPassword(e.target.value)}/>
 
                 <button type="submit">Login</button>
+                <p>
+                    <h3>New here? Signup</h3>
+                    <button type="button" onClick={()=>setShowSignup(true)}>
+                        Sign up
+                    </button>
+                </p>
             </form>
         </div>
     );
