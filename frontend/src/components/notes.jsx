@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fetchWithAuth } from "../utils/api";
 
 export default function Notes({ setIsLoggedIn }) {
 
@@ -17,46 +18,38 @@ export default function Notes({ setIsLoggedIn }) {
     }, []);
 
     // Handlers
-    function fetchNotes() {
+    async function fetchNotes() {
         setLoading(true);
-        if (!token) {
-            setIsLoggedIn(false);
-            return;
-        }
-        const API_URL = 'http://127.0.0.1:8000/api/v1/notes/';
-        console.log("TOKEN",token);
-        fetch(API_URL, {
-            headers:{"Authorization":`Bearer ${token}`}
-        })
-        .then(response=> {
-            if (response.status === 401){
+        try {
+            const response = await fetchWithAuth("http://127.0.0.1:8000/api/v1/notes/")
+            if (!response.ok) {
+                throw new Error("Failed to fetch notes");
+            }
+            const data = await response.json();
+            setNotes(data);
+            setError(null);
+        } catch (error) {
+            console.log("Error:", error.message);
+            if (error.message.includes("Session expired")) {
                 localStorage.removeItem("accessToken");
+                localStorage.removeItem("refreshToken");
                 setIsLoggedIn(false);
-                return;
+            } else {
+                setError(error);
             }
-            if(!response.ok){
-                throw new Error('Response was not OK!');
-            }
-            return response.json();
-        })
-        .then(notes => {
-            console.log(notes);
-            setNotes(notes);
-            setLoading(false)
-        })
-        .catch(error => {
-            setError(error);
+        } finally {
             setLoading(false);
-        })
+        }
     }
 
     const handleAddNote = async() =>{
         if(text.trim() === ''){
-            return
-        } else {
-            let response
+            return;
+        } 
+        try {
+            let response;
         if(editingID){
-            response = await fetch(`http://127.0.0.1:8000/api/v1/notes/${editingID}/update/`, 
+            response = await fetchWithAuth(`http://127.0.0.1:8000/api/v1/notes/${editingID}/update/`, 
                 {method:'PATCH',
                  headers: {
                     "Content-Type":"application/json",
@@ -64,22 +57,24 @@ export default function Notes({ setIsLoggedIn }) {
                     },
                  body: JSON.stringify({text: text})})
         } else {
-            response = await fetch(`http://127.0.0.1:8000/api/v1/notes/`, {
+            response = await fetchWithAuth(`http://127.0.0.1:8000/api/v1/notes/`, {
             method:'POST',
             headers: {
                 "Content-Type":"application/json","Authorization": `Bearer ${token}`
                 },
-            body: JSON.stringify({text: text})})
-        }
-        const data = await response.json();
-        console.log(data);
-        if (response.ok){
-            fetchNotes()
-            setText('')
-            setEditingID(null)
-        } else {
-            setError(new Error('Adding note unsuccessful'))
-        }
+            body: JSON.stringify({text: text})
+            });
+        }}
+       catch (error) {
+            console.log("Error:", error.message);
+
+            if (error.message.includes("Session expired")) {
+                localStorage.removeItem("accessToken");
+                localStorage.removeItem("refreshToken");
+                setIsLoggedIn(false);
+            } else {
+                setError(error);
+            }
         }
     };
 
@@ -95,14 +90,24 @@ export default function Notes({ setIsLoggedIn }) {
     };
 
     const handleDeleteNote = async(id) => {
-        let response = await fetch(`http://127.0.0.1:8000/api/v1/notes/${id}/delete/`, {
-            method:'DELETE',
-            headers: {"Authorization": `Bearer ${token}`}
-        })
-        if (response.ok){
-        fetchNotes();}
-        else {
-            setError(new Error ("Delete failed"));
+        try {
+            const response = await fetchWithAuth(
+                `http://127.0.0.1:8000/api/v1/notes/${id}/delete/`,
+                { method: "DELETE" }
+            );
+            if (!response.ok) {
+                throw new Error("Delete failed");
+            }
+            await fetchNotes();
+        } catch (error) {
+            console.log("Error:", error.message);
+            if (error.message.includes("Session expired")) {
+                localStorage.removeItem("accessToken");
+                localStorage.removeItem("refreshToken");
+                setIsLoggedIn(false);
+            } else {
+                setError(error);
+            }
         }
     };
 
